@@ -1,17 +1,32 @@
 // app/api/verification-api.js
+import { auth } from './firebase';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sbackend.duckdns.org/api';
 
 class VerificationAPI {
+  /**
+   * Get Firebase ID token for authenticated user
+   */
+  async getAuthToken() {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('No authenticated user');
+    }
+    return await user.getIdToken();
+  }
+
   /**
    * Verify user authentication
    */
   async verifyUser() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-user`, {
+      const token = await this.getAuthToken();
+
+      const response = await fetch(`${API_BASE_URL}/auth/verify-user`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
       });
@@ -34,10 +49,13 @@ class VerificationAPI {
    */
   async verifyGymAccess() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-gym-access`, {
+      const token = await this.getAuthToken();
+
+      const response = await fetch(`${API_BASE_URL}/auth/verify-gym-access`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
       });
@@ -60,11 +78,25 @@ class VerificationAPI {
    */
   async logout() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      // Try to get token, but don't fail if user is already logged out
+      let token = null;
+      try {
+        token = await this.getAuthToken();
+      } catch (e) {
+        console.log('No token available for logout');
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         credentials: 'include',
       });
 

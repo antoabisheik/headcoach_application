@@ -7,6 +7,7 @@ import verificationAPI from '../api/verification-api';
 import AttendanceManagement from '../_components/AttendanceManagement';
 import HardwareManagement from '../_components/HarwareManagement';
 import WorkoutSchedulePlanner from '../_components/WorkoutSchedule';
+import { useAuth } from '../context/AuthContext';
 
 // Dynamic imports for Next.js
 const TrainerManagement = dynamic(() => import('../_components/Trainer'), {
@@ -19,6 +20,7 @@ const UserManagement = dynamic(() => import('../_components/UserManagement'), {
 
 const VerificationPage = () => {
   const router = useRouter();
+  const { user: firebaseUser, loading: authLoading, initialized: authInitialized } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [user, setUser] = useState(null);
@@ -88,10 +90,17 @@ const VerificationPage = () => {
     }
   };
 
-  // Verify user on component mount
+  // Wait for Firebase auth to initialize, then verify user access
   useEffect(() => {
+    // Don't do anything until Firebase auth has initialized
+    if (!authInitialized) {
+      console.log('[VerificationPage] Waiting for Firebase auth to initialize...');
+      return;
+    }
+
+    console.log('[VerificationPage] Firebase auth initialized, verifying user access...');
     verifyUserAccess();
-  }, []);
+  }, [authInitialized]);
 
   // Handle sign out via backend
   const handleSignOut = async () => {
@@ -106,14 +115,20 @@ const VerificationPage = () => {
     }
   };
 
-  // Loading verification screen
-  if (isVerifying) {
+  // Loading verification screen (includes Firebase auth initialization)
+  if (authLoading || !authInitialized || isVerifying) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Verifying Access</h2>
-          <p className="text-gray-600">Checking your registration in our gym database...</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {!authInitialized ? 'Initializing...' : 'Verifying Access'}
+          </h2>
+          <p className="text-gray-600">
+            {!authInitialized
+              ? 'Restoring your session...'
+              : 'Checking your registration in our gym database...'}
+          </p>
         </div>
       </div>
     );
