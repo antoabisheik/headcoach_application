@@ -23,7 +23,7 @@ const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
  
-  // ✅ Use Firebase's built-in email verification
+  //  Use Firebase's built-in email verification
   const handleSignUp = async (e) => {
     e.preventDefault();
     
@@ -64,7 +64,7 @@ const SignUpForm = () => {
       // Step 3: Save additional user data to your backend
       try {
         const idToken = await userCredential.user.getIdToken();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sbackend.duckdns.org/api';
 
         await fetch(`${API_BASE_URL}/auth/save-user-data`, {
           method: "POST",
@@ -108,7 +108,7 @@ const SignUpForm = () => {
     }
   };
 
-  // ✅ Google Sign-in - send to backend for verification
+  // Google Sign-in - send to backend for verification
   const handleGoogleSignUp = async () => {
     setLoading(true);
     
