@@ -1,20 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    // Explicitly disable Turbopack
+    enabled: false,
+  },
+
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
+        source: "/api/:path*",
         destination: process.env.NEXT_PUBLIC_BACKEND_URL
           ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/:path*`
-          : 'https://sbackend.duckdns.org/api/:path*',
+          : "https://sbackend.duckdns.org/api/:path*",
       },
     ];
   },
-  // For static export (if deploying to nginx)
-  // output: 'export',
-  // images: {
-  //   unoptimized: true,
-  // },
+
+  webpack(config) {
+    return config;
+  },
 };
 
 export default nextConfig;
